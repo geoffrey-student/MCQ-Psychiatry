@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Psychiatry Exam</title>
+    <style>
+        :root {
+            --ios-blue: #007aff;
+            --ios-green: #34c759;
+            --ios-red: #ff3b30;
+            --ios-gray: #f2f2f7;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--ios-gray);
+            color: #1c1c1e;
+            margin: 0;
+            padding: 15px;
+            -webkit-text-size-adjust: 100%;
+            padding-bottom: 80px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            color: var(--ios-blue);
+            margin: 10px 0 5px 0;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: #8e8e93;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: opacity 0.3s;
+        }
+
+        .question-card.locked {
+            opacity: 0.9;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .question-number {
+            font-size: 0.75rem;
+            color: #8e8e93;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .verify-tag {
+            background-color: #ffcc00;
+            color: #000;
+            font-size: 0.7rem;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .question-text {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 18px;
+            line-height: 1.4;
+        }
+
+        .options-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .option-item {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: flex;
+            align-items: flex-start;
+            padding: 16px;
+            background-color: #f9f9f9;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        label:active {
+            background-color: #e5e5ea;
+            transform: scale(0.98);
+        }
+
+        label.show-correct {
+            border-color: var(--ios-green);
+            background-color: #e8f5e9;
+        }
+        
+        label.show-wrong {
+            border-color: var(--ios-red);
+            background-color: #ffebee;
+            opacity: 0.7;
+        }
+
+        input[type="radio"] {
+            margin-right: 14px;
+            margin-top: 4px;
+            transform: scale(1.3);
+            flex-shrink: 0;
+            accent-color: var(--ios-blue);
+        }
+
+        .check-btn {
+            display: block;
+            width: 100%;
+            background-color: var(--ios-blue);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-top: 20px;
+            cursor: pointer;
+            touch-action: manipulation;
+            transition: background 0.2s;
+        }
+
+        .check-btn:disabled {
+            background-color: #c7c7cc;
+            cursor: default;
+        }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            display: none;
+            line-height: 1.5;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .feedback.correct {
+            background-color: #e8f5e9;
+            color: #1b5e20;
+            border: 1px solid #c8e6c9;
+        }
+
+        .feedback.wrong {
+            background-color: #ffebee;
+            color: #b71c1c;
+            border: 1px solid #ffcdd2;
+        }
+
+        .score-section {
+            margin-top: 40px;
+            padding: 30px 20px;
+            background: #fff;
+            border-radius: 14px;
+            text-align: center;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+        }
+
+        .score-btn {
+            background-color: var(--ios-green);
+            color: white;
+            font-size: 1.2rem;
+            padding: 18px;
+            border-radius: 12px;
+            border: none;
+            width: 100%;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .final-score-display {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #1c1c1e;
+            display: none;
+        }
+        
+        .score-details {
+            font-size: 1rem;
+            color: #8e8e93;
+            margin-top: 10px;
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Psychiatry Review</h1>
+        <div class="subtitle">Personalized Answers</div>
+    </header>
+    
+    <div id="quiz-container">
+        </div>
+    
+    <div class="score-section">
+        <button class="score-btn" onclick="calculateFinalScore()">📊 Show Final Score</button>
+        <div id="final-score" class="final-score-display"></div>
+        <div id="score-details" class="score-details"></div>
+    </div>
+
+    <script>
+        // --- DATABASE ---
+        // Questions and answers exactly as provided by user
+        const db = [
+            { t: "Somatoform disorder is found most frequently in:", o: ["people who avoid medical and lab examination", "intense care units", "in-patient psychiatric units", "general medical practice"], a: 3, s: "ok" },
+            { t: "Hospitalization is frequently needed in acute psychosis.", o: ["True", "False"], a: 0, s: "ok" },
+            { t: "The experience of outer control over one's mental life is typical for obsessive-compulsive disorder.", o: ["False", "True"], a: 0, s: "ok" },
+            { t: "A common topic in obsession is fear of persecution.", o: ["True", "False"], a: 1, s: "ok" },
+            { t: "There is risk of epileptic seizures when antidepressant treatment in high doses is abruptly discontinued.", o: ["True", "False"], a: 0, s: "ok" },
+            { t: "There is high risk of aggression in chronic psychosis.", o: ["False", "True"], a: 0, s: "verify" },
+            { t: "Contra-transfer can be defined as patient's tendency to project negative feelings on the therapist.", o: ["True", "False"], a: 1, s: "ok" },
+            { t: "Crucial for diagnosing schizoaffective disorder are:", o: ["schizophrenic and affective symptoms in different illness episodes", "schizophrenic symptoms", "schizophrenic and affective symptoms in one illness episode", "affective symptoms"], a: 2, s: "ok" },
+            { t: "In delirium, state of consciousness commonly worsens in the evening.", o: ["False", "True"], a: 1, s: "ok" },
+            { t: "Which of the following psychiatric illnesses is often difficult to distinguish from schizophrenia?", o: ["Obsessive-compulsive disorder", "Bipolar affective disorder", "Anxiety disorder", "Post-traumatic stress disorder"], a: 1, s: "ok" },
+            { t: "Somatic illness with poor prognosis is a risk factor for suicide.", o: ["True", "False"], a: 0, s: "ok" },
+            { t: "Ideographic case formulation is:", o: ["related to etiology", "always based on diagnosis", "alternative of the diagnosis", "always individual"], a: 3, s: "ok" },
+            { t: "There is usually clear consciousness in delirium.", o: ["False", "True"], a: 0, s: "ok" },
+            { t: "Specific symptoms of depression include:", o: ["suspiciousness", "decreased need for sleep", "diurnal variations of the clinical state", "increased appetite"], a: 2, s: "ok" },
+            { t: "Case formulation is based on:", o: ["psycho-social circumstances", "patient's symptoms and treatment", "mental disorder in the context of individual development", "clinical diagnosis and prognosis"], a: 2, s: "ok" },
+            { t: "Specific side effects of tri-cyclic antidepressants include:", o: ["hyper-prolactinaemia", "aggranulocytosis", "anticholinergic effects", "addiction"], a: 2, s: "ok" },
+            { t: "Factors contributing to increase the risk of aggression include:", o: ["abuse during childhood", "alcohol abuse", "all of the above", "male gender"], a: 2, s: "ok" },
+            { t: "A 17-year-old patient with schizophrenia on depot neuroleptic treatment complains laughingly that her head turns to one side: it is recommended to apply haloperidol intramuscularly.", o: ["False", "True"], a: 0, s: "ok" },
+            { t: "First-rank symptoms include:", o: ["gustatory hallucinations", "high risk of aggression", "flexibilitas cerea", "thought withdrawal"], a: 3, s: "ok" },
+            { t: "Dementia may be etiologically related to heavy alcohol abuse.", o: ["True", "False"], a: 0, s: "ok" },
+            { t: "Double depression is:", o: ["major depression superimposed on dysthymia", "bipolar disorder", "recurrent depression"], a: 0, s: "ok" },
+            { t: "Appetite disturbance is typical symptom of depression.", o: ["True", "False"], a: 0, s: "ok" },
+            { t: "Tri-cyclic antidepressants are preferred for antidepressant treatment after myocardial infarction.", o: ["False", "True"], a: 0, s: "ok" },
+            { t: "There is frequently sleep disturbance in acute psychosis.", o: ["True", "False"], a: 0, s: "ok" },
+            { t: "Alcohol delirium is usually a complication of alcohol withdrawal.", o: ["False", "True"], a: 1, s: "ok" },
+            { t: "SSRI's are more effective than tri-cyclic antidepressants.", o: ["True", "False"], a: 1, s: "ok" },
+            { t: "Specific feature of anorexia nervosa is:", o: ["underlying malignant disease", "disturbed self-perception of own weight and body form", "self-inflicted vomiting without weight change", "regular visits to gyms"], a: 1, s: "ok" },
+            { t: "Electro-convulsive therapy is commonly applied in catatonia.", o: ["True", "False"], a: 0, s: "ok" },
+            { t: "Primary disturbance in depression is in the process of thinking.", o: ["False", "True"], a: 0, s: "ok" },
+            { t: "When dementia is diagnosed the clinician helps the relatives to plan and allocate care for the patient.", o: ["False", "True"], a: 1, s: "ok" },
+            { t: "Personality deterioration and global dementia are found in:", o: ["epilepsy", "vascular dementia", "Alzheimer's disease", "Korsakoff's syndrome"], a: 2, s: "ok" },
+            { t: "Diurnal fluctuations are more characteristic for vascular rather than for Alzheimer's type of dementia.", o: ["True", "False"], a: 0, s: "verify" },
+            { t: "Anxiety disorders are treated mainly with:", o: ["antidepressants", "mood stabilizers", "antipsychotics", "Benzodiazepines"], a: 0, s: "verify" },
+            { t: "Visual illusions and hallucinations are characteristic for delirium.", o: ["True", "False"], a: 0, s: "ok" },
+            { t: "Panic attacks are commonly signs of a heart disease.", o: ["False", "True"], a: 0, s: "verify" },
+            { t: "Specific symptoms of simple schizophrenia include:", o: ["auditory hallucinations", "autistic detachment from reality", "paranoid delusions", "bodily hallucinations"], a: 1, s: "ok" },
+            { t: "Psychosocial rehabilitation is focused primarily on:", o: ["prognosis of mental disorder", "patient's symptoms", "personality's healthy resources", "treatment of mental disorder"], a: 2, s: "ok" },
+            { t: "Contemporary psychiatric diagnosis is:", o: ["ideographic", "paradigmatic", "categorial", "dimensional"], a: 2, s: "ok" },
+            { t: "Alcohol abuse is characterized by:", o: ["depreciation of the problem", "evidence of insight", "drinking above the safe limits set by WHO", "evidence of withdrawal syndrome"], a: 2, s: "ok" },
+            { t: "Validity of a scale refers to reproducibility of the results.", o: ["True", "False"], a: 1, s: "ok" },
+            { t: "Agoraphobia co-occurs most frequently together with:", o: ["phobia to blood and injections", "generalized anxiety disorder", "panic disorder", "social phobia"], a: 2, s: "ok" },
+            { t: "Specific symptoms of obsessive-compulsive disorder include:", o: ["echopraxia", "hypochondrial delusions", "delusions for cleanliness", "obsessive ideas"], a: 3, s: "ok" },
+            { t: "Prior suicide attempts are serious risk factor for suicide.", o: ["False", "True"], a: 1, s: "ok" },
+            { t: "Case formulation aims at substantiation of patient's diagnosis.", o: ["False", "True"], a: 0, s: "verify" },
+            { t: "Excessive need of control over the surroundings is basic feature of anankastic personality.", o: ["True", "False"], a: 0, s: "ok" },
+            { t: "Specific traits of histrionic personality include:", o: ["reluctancy to connect with others", "sexual provocativeness in behavior", "easy-going with others", "deep emotionality"], a: 1, s: "ok" },
+            { t: "The main method for treatment of personality disorders is medication.", o: ["False", "True"], a: 0, s: "ok" },
+            { t: "The antipsychotics may cause addiction.", o: ["True", "False"], a: 1, s: "ok" },
+            { t: "Lifetime prevalence of schizophrenia in the general population is:", o: ["1 in 10000", "1 in 1000", "between 0 and 12%", "1%"], a: 3, s: "ok" },
+            { t: "Suicide risk in teenagers is higher than in elderly people.", o: ["False", "True"], a: 0, s: "verify" },
+            { t: "Legal incapacity means:", o: ["lack of insight", "inability to give informed consent", "incapacity to care for her/himself", "incapacity for decisions about treatment"], a: 2, s: "ok" },
+            { t: "Electro-convulsive therapy (ECT) is the main treatment method in:", o: ["generalized anxiety disorder", "agoraphobia", "catatonia", "chronic psychosis"], a: 2, s: "ok" },
+            { t: "Alcohol delirium is characterized by:", o: ["delusions for spying", "marked diurnal variations", "lack of tolerance to diazepam", "onset during binge drinking"], a: 1, s: "verify" },
+            { t: "Personality disorders do not run-in illness episodes.", o: ["False", "True"], a: 1, s: "ok" },
+            { t: "Specific symptoms of mania include:", o: ["echolalia", "accelerated speech", "obsessive ideas for excessive cleaning", "suspiciousness"], a: 1, s: "ok" },
+            { t: "From psychotherapeutic methods, there is evidence for effectiveness in depression for:", o: ["hypnosis", "psychoanalysis", "psychodrama", "cognitive-behavioural therapy"], a: 3, s: "ok" },
+            { t: "Alzheimer's dementia is characterized by specific pathoanatomical findings.", o: ["False", "True"], a: 1, s: "ok" },
+            { t: "Genetic factors have higher etiological contribution for schizophrenia than for bipolar affective disorder.", o: ["True", "False"], a: 1, s: "verify" },
+            { t: "Approved psychiatric classifications are:", o: ["real nosologies", "operational taxonomies", "dimensional typologies", "systematic"], a: 1, s: "ok" },
+            { t: "Substitution therapy with methadone is given in:", o: ["amphetamine addiction", "cocaine addiction", "hallucinogens addiction", "opioid addiction"], a: 3, s: "ok" },
+            { t: "Quality of life is:", o: ["complex evaluation of symptoms", "subjective view about degree of satisfaction from life", "complex evaluation of adaptation", "objective measure of status"], a: 1, s: "ok" },
+            { t: "Antipsychotics intake requires monitoring of their plasma levels.", o: ["False", "True"], a: 0, s: "ok" },
+            { t: "Depression is treated mainly with benzodiazepines.", o: ["False", "True"], a: 0, s: "ok" },
+            { t: "Which of the following statements is accurate regarding neuropsychiatric symptoms of Alzh. Dementia?", o: ["They can not predict disease progression", "They occur periodically", "They can precede the clinical onset of the disease", "Their presence reflects a more severe form"], a: 2, s: "ok" },
+            { t: "In acute stress reaction, it is appropriate:", o: ["to avoid topics connected with trauma", "to encourage verbalization of the traumatic event and experience of catharsis", "to prescribe benzodiazepines", "to hospitalize"], a: 1, s: "ok" },
+            { t: "Informed consent in psychiatry:", o: ["is not required", "is needed in all cases with the exception of emergency and legal coercion", "is not needed for ECT", "is obtained by relatives"], a: 1, s: "ok" },
+            { t: "The sleep-wake cycle is disturbed in delirium.", o: ["True", "False"], a: 0, s: "ok" },
+            { t: "Recommended time period for relapse prevention treatment in schizophrenia is usually several months.", o: ["True", "False"], a: 1, s: "ok" },
+            { t: "Depressive pseudo-dementia indicates:", o: ["concomitant dementia", "specific cognitive impairment", "absence of cognitive impairment", "functional cognitive impairment in depression"], a: 3, s: "ok" },
+            { t: "Patient with chronic psychosis is in need of social skills training.", o: ["False", "True"], a: 1, s: "ok" },
+            { t: "An 18-year-old patient starts crying soon after the start of the interview: it is recommended that the doctor should calm her promptly.", o: ["True", "False"], a: 1, s: "verify" },
+            { t: "Delusional misidentification - this is a catch all phrase for Capgras syndrome, Fregoli delusion and other misidentification syndromes such as the belief in a Doppelganger (or double)", o: ["False", "True"], a: 1, s: "ok" },
+            { t: "Patients with agoraphobia have insight about irrationality of their fears.", o: ["False", "True"], a: 1, s: "ok" },
+            { t: "Dysmetabolic syndrome is more characteristic for conventional rather than for atypical antipsychotics.", o: ["False", "True"], a: 0, s: "ok" },
+            { t: "In patients with thrombotic complications the following are contra-indicated:", o: ["tri-cyclic antidepressants", "MAO-inhibitors", "valproates", "risperidone"], a: 3, s: "verify" },
+            { t: "Late dyskinesias are specific although rare complication of antidepressant treatment.", o: ["False", "True"], a: 0, s: "ok" },
+            { t: "Long-term marijuana use results in which of the following forms of memory impairment?", o: ["Short-term memory loss of personal experiences", "Long-term memory loss", "Short-term memory loss of number sequences and verbal recall", "Short-term memory loss of factual elements"], a: 2, s: "ok" },
+            { t: "Arterial hypertension is specific side effect of lithium.", o: ["True", "False"], a: 1, s: "ok" },
+            { t: "Delusions are not present in depression.", o: ["True", "False"], a: 1, s: "ok" },
+            { t: "Passive attention is intensified in mania.", o: ["True", "False"], a: 0, s: "ok" },
+            { t: "Withdrawal syndrome in opioide dependence is manifested with:", o: ["delirium", "sweating, rhinorrhea, mydriasis", "motor retardation", "low mood"], a: 1, s: "ok" },
+            { t: "Haloperidol rather than diazepam is to be preferred for treatment of delirium in 80-year-old man with hypertension.", o: ["True", "False"], a: 0, s: "ok" },
+            { t: "Cognitive therapy is recommended in withdrawal syndrome.", o: ["True", "False"], a: 1, s: "verify" },
+            { t: "Interview phases include:", o: ["history taking, relative, mental status", "transition open closed", "history taking, mental status, summarization", "opening, body, closing"], a: 2, s: "ok" },
+            { t: "Persecutory delusions are the main symptom in mania.", o: ["True", "False"], a: 1, s: "ok" },
+            { t: "Interview structuredeness refers to:", o: ["assessment of mental status", "ordering and precise formulation of interview questions", "relevance to the classifications' diagnostic criteria", "available instructions"], a: 1, s: "ok" },
+            { t: "Focal neurological symptoms are more likely to be found in vascular rather than in Alzheimer's type of dementia.", o: ["True", "False"], a: 0, s: "ok" },
+            { t: "Specific traits of antisocial personality include:", o: ["inability to feel guilt", "cool affect", "excessive fantasying", "inability to experience pleasure"], a: 0, s: "ok" },
+            { t: "Psychological assessment may be helpful in evaluation of change in patient's condition.", o: ["False", "True"], a: 1, s: "ok" },
+            { t: "There is affective flattening in acute psychosis.", o: ["False", "True"], a: 0, s: "verify" }
+        ];
+
+        // State tracking
+        const userResults = new Array(db.length).fill(null); 
+
+        // --- SHUFFLING HELPER ---
+        function shuffleOptions(originalOptions, originalCorrectIndex) {
+            let indices = originalOptions.map((_, i) => i);
+            
+            // Shuffle indices (Fisher-Yates)
+            for (let i = indices.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [indices[i], indices[j]] = [indices[j], indices[i]];
+            }
+
+            const newOptions = indices.map(i => originalOptions[i]);
+            const newCorrectIndex = indices.indexOf(originalCorrectIndex);
+
+            return { newOptions, newCorrectIndex };
+        }
+
+        // --- APP ENGINE ---
+        const container = document.getElementById('quiz-container');
+
+        // Add error handling to see if loop runs
+        if (!container) {
+             alert('Error: Quiz container not found!');
+        }
+
+        try {
+            db.forEach((q, index) => {
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.id = `card-${index}`;
+
+                // Randomize Options
+                const { newOptions, newCorrectIndex } = shuffleOptions(q.o, q.a);
+
+                // Header
+                const header = document.createElement('div');
+                header.className = 'question-header';
+                const num = document.createElement('span');
+                num.className = 'question-number';
+                num.innerText = `Question ${index + 1}`;
+                header.appendChild(num);
+
+                if (q.s === 'verify') {
+                    const tag = document.createElement('span');
+                    tag.className = 'verify-tag';
+                    tag.style.display = 'inline-block';
+                    tag.innerText = '⚠️ Verify PDF';
+                    header.appendChild(tag);
+                }
+                card.appendChild(header);
+
+                // Text
+                const text = document.createElement('div');
+                text.className = 'question-text';
+                text.innerText = q.t;
+                card.appendChild(text);
+
+                // Options
+                const optionsList = document.createElement('ul');
+                optionsList.className = 'options-list';
+
+                newOptions.forEach((opt, displayedIndex) => {
+                    const li = document.createElement('li');
+                    li.className = 'option-item';
+                    
+                    const label = document.createElement('label');
+                    label.id = `label-${index}-${displayedIndex}`; 
+                    
+                    const input = document.createElement('input');
+                    input.type = 'radio';
+                    input.name = `q${index}`; 
+                    input.value = displayedIndex; 
+                    
+                    label.appendChild(input);
+                    label.appendChild(document.createTextNode(opt));
+                    
+                    li.appendChild(label);
+                    optionsList.appendChild(li);
+                });
+                card.appendChild(optionsList);
+
+                // Check Button
+                const btn = document.createElement('button');
+                btn.className = 'check-btn';
+                btn.innerText = 'Check Answer';
+                btn.id = `btn-${index}`;
+                btn.onclick = () => check(index, newCorrectIndex, newOptions); 
+                card.appendChild(btn);
+
+                // Feedback
+                const feedback = document.createElement('div');
+                feedback.id = `fb-${index}`;
+                feedback.className = 'feedback';
+                card.appendChild(feedback);
+
+                container.appendChild(card);
+            });
+        } catch(e) {
+            alert("Erreur JS: " + e.message);
+        }
+
+        function check(idx, correctIndex, optionsArray) {
+            const selected = document.querySelector(`input[name="q${idx}"]:checked`);
+            const fb = document.getElementById(`fb-${idx}`);
+            const btn = document.getElementById(`btn-${idx}`);
+            const card = document.getElementById(`card-${idx}`);
+            
+            if (!selected) return;
+
+            const val = parseInt(selected.value);
+            
+            // Disable interactions
+            const inputs = document.getElementsByName(`q${idx}`);
+            inputs.forEach(inp => inp.disabled = true);
+            btn.disabled = true;
+            btn.innerText = "Answered";
+            card.classList.add('locked');
+
+            fb.style.display = 'block';
+
+            if (val === correctIndex) {
+                userResults[idx] = true;
+                fb.classList.add('correct');
+                fb.innerHTML = `<strong>✅ Correct!</strong>`;
+                document.getElementById(`label-${idx}-${val}`).classList.add('show-correct');
+            } else {
+                userResults[idx] = false;
+                const correctText = optionsArray[correctIndex];
+                fb.classList.add('wrong');
+                fb.innerHTML = `<strong>❌ Incorrect.</strong><br>The correct answer is:<br>👉 <em>${correctText}</em>`;
+                document.getElementById(`label-${idx}-${val}`).classList.add('show-wrong');
+                document.getElementById(`label-${idx}-${correctIndex}`).classList.add('show-correct');
+            }
+        }
+
+        function calculateFinalScore() {
+            let score = 0;
+            let answered = 0;
+            
+            userResults.forEach(r => {
+                if (r === true) score++;
+                if (r !== null) answered++;
+            });
+
+            const total = db.length;
+            const percentage = Math.round((score / total) * 100);
+
+            const display = document.getElementById('final-score');
+            const details = document.getElementById('score-details');
+
+            display.style.display = 'block';
+            details.style.display = 'block';
+
+            let color = '#ff3b30'; // Red
+            if (percentage >= 50) color = '#ffcc00'; // Yellow
+            if (percentage >= 80) color = '#34c759'; // Green
+
+            display.style.color = color;
+            display.innerText = `${percentage}%`;
+            details.innerText = `You scored ${score} out of ${total} questions.`;
+            
+            display.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
